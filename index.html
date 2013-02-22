@@ -28,12 +28,33 @@
         });
       }
 
-      getCommits('featurist', 'pogoscript', 'master', function (data) {
+      function getRepoFromHash() {
+        var match = /#(.*?)\/(.*?)$/.exec(window.location.hash);
+        if (match) {
+          return {user: match[1], repo: match[2]};
+        } else {
+          return {user: 'featurist', repo: 'pogoscript'};
+        }
+      }
+
+      var repo = getRepoFromHash();
+
+      getCommits(repo.user, repo.repo, 'master', function (data) {
         console.log(data);
         for (var c = 0; c < data.data.length; c++) {
-          var commit = data.data[c];
-          //console.log(commit.commit.message);
-          addCommit(commit.commit.message, commit.author.login);
+          (function (c) {
+            setTimeout(function () {
+              var commit = data.data[c];
+              //console.log(commit.commit.message);
+              var login;
+              if (commit.author) {
+                login = commit.author.login;
+              } else {
+                login = 'nobody';
+              }
+              addCommit(commit.commit.message, login);
+            }, 0);
+          })(c);
         }
       });
 
