@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    body {
+      background-color: #000000;
+      background-image: url('background.jpg');
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <audio autoplay>
+    <source src="theme.mp3" type="audio/mp3">
+  </audio>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="three.js"></script> 
+  <script src="http://mrdoob.github.com/three.js/examples/fonts/helvetiker_regular.typeface.js"></script>
+  <script>
+      function getCommits(user, repo, branch, callback) {
+        $.ajax({
+            url: "https://api.github.com/repos/" + user + "/" + repo + "/commits?sha=" + branch,
+            dataType: 'jsonp',
+            success: callback
+        });
+      }
+
+      getCommits('featurist', 'pogoscript', 'master', function (data) {
+        console.log(data);
+        for (var c = 0; c < data.data.length; c++) {
+          var commit = data.data[c];
+          //console.log(commit.commit.message);
+          addCommit(commit.commit.message, commit.author.login);
+        }
+      });
+
+      var camera, scene, renderer;
+      var geometry, material, mesh;
+      var lastPosition = 0;
+      var words;
+
+      var commits = [];
+
+      init();
+      animate();
+
+      function addCommit(text, details) {
+          var shape = new THREE.TextGeometry(text + ' - ' + details, {font: 'helvetiker', height: 0});
+          var wrapper = new THREE.MeshBasicMaterial({color: 0xe5b13a});
+          var words = new THREE.Mesh(shape, wrapper);
+          lastPosition -= 300;
+          words.position.x = -1500;
+          words.position.y = lastPosition;
+          scene.add(words);
+          commits.push(words);
+      }
+
+      function init() {
+
+          camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+          camera.position.z = 1000;
+          camera.rotation.x += Math.PI / 180 * 45;
+
+          scene = new THREE.Scene();
+          //scene.add(new THREE.AmbientLight(0x000000));
+          console.log(scene);
+
+          renderer = new THREE.WebGLRenderer();
+          renderer.setSize( window.innerWidth, window.innerHeight );
+
+          document.body.appendChild( renderer.domElement );
+
+      }
+
+      function animate() {
+
+          // note: three.js includes requestAnimationFrame shim
+          requestAnimationFrame( animate );
+
+          for (var n = 0; n < commits.length; n++) {
+            var commit = commits[n];
+
+            commit.position.y += 2;
+          }
+
+          renderer.render( scene, camera );
+
+      }
+
+      /*
+      {size: 50, height: 50, curveSegments: 15}
+
+      parameters = {
+ *  size: 			<float>, 	// size of the text
+ *  height: 		<float>, 	// thickness to extrude text
+ *  curveSegments: 	<int>,		// number of points on the curves
+ *
+ *  font: 			<string>,		// font name
+ *  weight: 		<string>,		// font weight (normal, bold)
+ *  style: 			<string>,		// font style  (normal, italics)
+ *
+ *  bevelEnabled:	<bool>,			// turn on bevel
+ *  bevelThickness: <float>, 		// how deep into text bevel goes
+ *  bevelSize:		<float>, 		// how far from text outline is bevel
+ *  }*/
+
+  </script>
+</body>
+</html>
